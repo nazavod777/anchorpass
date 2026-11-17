@@ -1,0 +1,1 @@
+{"command": ["cargo", "build", "--locked", "--release", "--manifest-path", "benchmarks/pressure/rust/Cargo.toml"], "exit_code": 0}

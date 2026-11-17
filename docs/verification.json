@@ -1,0 +1,279 @@
+{
+  "date": "2026-11-16",
+  "scope": "Local development snapshot; no publication or deployed update service",
+  "python": {
+    "tests": 77,
+    "elapsed_seconds": 16.8,
+    "versions_tested": [
+      "3.11.18",
+      "3.13.15"
+    ],
+    "minimum_test_summary": "77 passed in 17.37s"
+  },
+  "node": {
+    "tests": 25,
+    "passed": 25,
+    "failed": 0
+  },
+  "go": {
+    "race_tests_passed": true,
+    "elapsed_seconds": 5.906
+  },
+  "rust": {
+    "all_features_summary": "test result: ok. 37 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.28s",
+    "isolated_capacity_test_ran": true
+  },
+  "commands_and_results": {
+    "make-check": {
+      "command": [
+        "make",
+        "-j4",
+        "check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 21.242700441973284
+    },
+    "rust-final": {
+      "checks": [
+        {
+          "command": [
+            "make",
+            "-j2",
+            "test-rust"
+          ],
+          "exit_code": 0
+        },
+        {
+          "command": [
+            "make",
+            "test-rust-package"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "elapsed_seconds": 14.550694095960353
+    },
+    "python311": {
+      "checks": [
+        {
+          "command": [
+            "uv",
+            "venv",
+            "--python",
+            "/usr/bin/python3.11",
+            "/tmp/anchorpass-python311-u_jz4we0/environment"
+          ],
+          "exit_code": 0
+        },
+        {
+          "command": [
+            "uv",
+            "pip",
+            "install",
+            "--python",
+            "/tmp/anchorpass-python311-u_jz4we0/environment/bin/python",
+            "-r",
+            "requirements-dev.lock"
+          ],
+          "exit_code": 0
+        },
+        {
+          "command": [
+            "/tmp/anchorpass-python311-u_jz4we0/environment/bin/python",
+            "-m",
+            "pytest",
+            "-q"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "elapsed_seconds": 19.78881795995403
+    },
+    "python-package-final": {
+      "command": [
+        ".venv/bin/python",
+        "scripts/check_python_package.py",
+        "--work-dir",
+        "/tmp/anchorpass-root-python-final-3zy4skl0/installation"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 8.22533422196284
+    },
+    "node-go-packages": {
+      "command": [
+        "make",
+        "-j2",
+        "test-node-package",
+        "test-go-package"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 3.0182288590003736
+    },
+    "producer": {
+      "valid_cli_exit_code": 0,
+      "verified_revision": "2",
+      "overwrite_negative_exit_code": 1,
+      "bytes": 4602
+    },
+    "packaged-python-demo-proxy": {
+      "exit_code": 0,
+      "connect_targets": [
+        "recaptcha-demo.appspot.com:443",
+        "www.google.com:443"
+      ]
+    }
+  },
+  "retained_raw_logs": "/tmp/anchorpass-root-verification",
+  "source_sha256": {
+    ".github/workflows/ci.yml": "f8a90e11b6664214b1ba88af24cdc7ff0249497f600bf44fd84312463b64adf5",
+    "Makefile": "3945e078a90dc4e194d0c39d7945e3018e25e4ea463223b0cc769ae2adab1ce2",
+    "data/bundled/bundle.json": "041476c6e0d2ec2bec5bfd89b0eb6af3a1028f97f51985850661c39776eb8c34",
+    "data/bundled/keys.json": "9f81a7d4465445d7795fa6b40283c73eb9714c5908a2b03b8c4d537c362bdb83",
+    "go/LICENSE": "7b14b819bc5e8545159384156fd7ccfe0edbb50a55cba543d304b592ac85f81c",
+    "go/NOTICE": "44d2f239f6ca0d475fb1ec15d3b6ee5ba7c8bfb4ac18adf743431d756018f509",
+    "go/README.md": "1a5b9f3450e9362d591cf74c9316e0244b3af2288d62b2e11aaa6e8c41c47947",
+    "go/bundle.go": "db4a97fe33aa0c476375b331dc47dc0a2592cd7c375a0b9b1332c49affb2c478",
+    "go/cache.go": "673166914f37b70d1747f01cc32d22aa3019f90511973afddb648cb36afd12a1",
+    "go/cache_lock_other.go": "2051894e55e28c22dbc70e02039b3ef45078dbd1ccd4f156fa9863e3b04868e3",
+    "go/cache_lock_unix.go": "153834f472da5b3e270fc268d619eecafd6efe53bbd85caab2b32b62ebb949f7",
+    "go/cache_unix_test.go": "1da01c050db9cecb2e65206d64cead7927eec7f0e5f24582026c1a4482467c36",
+    "go/client.go": "349d9821331901cf2ea018f4164f2934ef0f29588fe2a968a3165a174dbe9276",
+    "go/client_test.go": "f3eac75229db73df3c3b4d0c0748341e082e7eb0de7061cfe4e2f00b8ba211c4",
+    "go/core.go": "8cd4c0d95f9e452a00381c02ca50b96653d3567bd7ee54a92fd97377e14d3a4f",
+    "go/core_test.go": "9ae0cdbad9dcbafdf228645c708fead5398825484e8256a883ba99a2842930bd",
+    "go/data/bundle.json": "041476c6e0d2ec2bec5bfd89b0eb6af3a1028f97f51985850661c39776eb8c34",
+    "go/data/keys.json": "9f81a7d4465445d7795fa6b40283c73eb9714c5908a2b03b8c4d537c362bdb83",
+    "go/errors.go": "25888906c263af62ff90aa04a69ad17a85853d283070aec7e8287b1350494ff0",
+    "go/go.mod": "2e39e1087af8772dd0679b98a62962173f8af48fb3b4d0647a1f034e40c29b3e",
+    "go/main_test.go": "43770acded20cc6314bb27524d746603870104bf0cb5eba8dc74e0d278f12bc6",
+    "go/options.go": "0b31a11c0e029394e87f0e5ee767a5615e1e67a5e483ad4ce4c36f6bf2adffcd",
+    "go/override_test.go": "02757bb808e7d429929a0271e3bc0a99b8ff41d8234dcc9c273944fe36d0b44d",
+    "go/response_test.go": "2d890b97473017d5255505c24150ead9338ab7545f254f3ded3cd2d88d08129b",
+    "go/retry_test.go": "3ccc2097129230cb2ecca8cec3fa849db60accdd5a136bca34156d43b7036849",
+    "go/shared.go": "cc9e1b0e51e8a924ec5c450c72bbcdd58b6d94d9aba433a9f4334aabb40bbb6e",
+    "go/shared_test.go": "fc894adb161e82bc34d4f8e8e13f74079f8e347cee985ff67e32141a497c2ddf",
+    "go/socks_test.go": "52deeaab4ac89da0580ff53d02f6048313affc86541034700ea646d3a23fadfe",
+    "go/testdata/proxies.json": "4f144878301840700c52b7e708cd46c656120f8933d288fa0cf6cbe9107ebb00",
+    "go/transport.go": "9b58496d9a9102bfc5c626ce75d6d089a5c52674ce89b44538af19afd4b5fee5",
+    "go/unicode_test.go": "127111990e7d7207100c6ae942ae75d3deb209a1d14baa07d39ceaae0b0e5219",
+    "go/updates_test.go": "d923473f979a051d89f80caceb9149afce5c29448dd61efd1bb491547422d612",
+    "js/package-lock.json": "a9e24dd38863005cd0c05cdd330ae83f861bc263cb2b90dbef8cccde8bcc9eb7",
+    "js/package.json": "bc951aa45b4a912ac5c5ed55593067d77c78ce936dc914228f7d49a3543112ef",
+    "js/src/client.ts": "7cd8cb82a744d6d86edc85c7c2f489f574159fd9947625246c47479c759046ae",
+    "js/src/core.ts": "6d97014bbed9bbdd1da4d5ed8ef6f39b1188261bacb4c3be9781964a16adb80d",
+    "js/src/errors.ts": "5a66e93c49aa3d630eb4264b093154f1ec4d98b6dfe9ff1cb12dfe9cc4826c4b",
+    "js/src/index.ts": "a690153ccd0d9e0aa1e8706d6ee8fab258c3d266f30551cfd8f38f8765f3521e",
+    "js/src/json.ts": "7c9f3db8f921ed95f62f04a9c17c69f214360a379468d1a23e3c1bfacd068a88",
+    "js/src/sync.ts": "120ccfae0b03c7b1c4a9f2199ce12916896ea3778bb84c1bc920a3cded38528d",
+    "js/src/transport.ts": "fb3008c8d71e3535e39468c2aa8b672ac46b1b95129aada00f407c22da1f954e",
+    "js/src/updates.ts": "e6ce502622c5cc54249a74ba43320cced7ca5560b2a382c912ed4f5f1b234ed0",
+    "js/src/worker.ts": "48e692efc476d9415a1f107a04117c15858fa695ad17d6a60d38262d5b9a4486",
+    "python/pyproject.toml": "367167889ae9e7d50156c4fcbcd0c2822dafe94174d2dde2d22fc2d8c500a23f",
+    "python/src/anchorpass/__init__.py": "b36960bfc60e9e66b019ca7d11019fd419d998e18903492d6f7c90b495f50a0c",
+    "python/src/anchorpass/bundle.py": "fcf7679edf39f8a7613959ceec959604172cb45dca51945fdc7f275c09a112df",
+    "python/src/anchorpass/client.py": "9c60519a926d133f9d9b902236d8128e56a3b95f0479666a9f266d975c5430a0",
+    "python/src/anchorpass/core.py": "44253b99db928c9fbaaea44871000084008a71ffcc0a1d4e9ca0b9c474782c16",
+    "python/src/anchorpass/data/__init__.py": "69f511c39b2336a8ad151e8cfd3a08ee3ad80f0899175cf9663f02f9c7e9c156",
+    "python/src/anchorpass/data/bundle.json": "041476c6e0d2ec2bec5bfd89b0eb6af3a1028f97f51985850661c39776eb8c34",
+    "python/src/anchorpass/data/keys.json": "9f81a7d4465445d7795fa6b40283c73eb9714c5908a2b03b8c4d537c362bdb83",
+    "python/src/anchorpass/errors.py": "33586e56c0acdf7ad58e90f6fde87c87b251b203e5deaba9f30a66a9a015fdd8",
+    "python/src/anchorpass/proxy.py": "722def7354b5c4dc699a5aa6405d4f5407a904744cbcd737c2e2fe2f4b8448cf",
+    "python/src/anchorpass/py.typed": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "python/src/anchorpass/updates.py": "03b1ae84e29668f565c0817e1a46e2a510623b37d5869c06bf78f5c487423f4f",
+    "python/src/anchorpass.egg-info/PKG-INFO": "f4afc76c664398b2a68f8f073ab22b2d6c0e3c0f295afb1173e6b3882381fc1d",
+    "python/src/anchorpass.egg-info/SOURCES.txt": "bfce73b85c7937a486121160d52c5311c9204e95cb331d003ee476a47fdbaf40",
+    "python/src/anchorpass.egg-info/dependency_links.txt": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "python/src/anchorpass.egg-info/requires.txt": "dc6452d1d5e15cc23d0742f0e1baa4bf870164d6b47802da817768d6afa6362b",
+    "python/src/anchorpass.egg-info/top_level.txt": "b903ae34773b80e9612377a7abc234784c5f38fed7d42089b932e322b5b99449",
+    "rust/Cargo.lock": "4eba592abac59f163f9289734a22764e282d4a272a240a0efb44385f33f6d514",
+    "rust/Cargo.toml": "4092c39a817b8dda14fd484e680c0807a5469210edf6f814970c4d59b1b26f84",
+    "rust/src/blocking.rs": "c66157e0e3864374ab2db81afa31200b842bacd27606d682540f39604228fd81",
+    "rust/src/bundle.rs": "0b606d84a603f753f37fedd99b4241cce74c19e4ecdacc9bc17709d7e1cb008b",
+    "rust/src/cache.rs": "ca1122eddfcdf13fb3371524968fad6d46c1e3fb14b8b5b4c5c1324a8cda8fdd",
+    "rust/src/client.rs": "367c72f31e0b216f641b20421a2364e0fd9ff9fd9ff4623d271b0ad6190ba2db",
+    "rust/src/core.rs": "e9c7aa6d4be1a90f75dd2a43420107ee100aaee3e19e80de610d705ef8a78ecc",
+    "rust/src/error.rs": "318c69c366af4ebc42f20732bf6183b07907c41997805aa63f74164a3a9f88dc",
+    "rust/src/lib.rs": "64f2fecc22b33b976217adb2d6c8828d4c7b114cc3c8909b66ac0c814b546652",
+    "rust/src/proxy.rs": "3953959b87e7d9c8ca7a6e71fe1e46efb0d3d6fb49027fc2ffabef949c18371e",
+    "rust/src/shared.rs": "4df01c58ca2a7ce477f966af67152e0c4088b72e7b43f0fc761cee3a549d1df9",
+    "rust/src/tests.rs": "6dea940292e8e483d1a493af46dea963192ee073e2fc05d2c0099e2847f0a1a5",
+    "scripts/build_bundle.py": "1c0519ac9791055a4902fcdced2516b446e6270062b0e1ea04934c7fe11828f7",
+    "scripts/check_demo.py": "e2b654a82a470356620c4dd486de8c080de2a6a0441fcf2a3802b1f8289d2dec",
+    "scripts/check_go_package.py": "f02fe6132733b77751e0235b46e508731a6ad08b882e47fccb27196f6c982497",
+    "scripts/check_python_package.py": "002811933cf385b4e134bf6d11a5decd17b7c6cc464e7ccf0c9bbd330be155ce",
+    "scripts/check_rust_package.py": "54df51b4ebd5485610a9fcf9f5ba694ae00de9082008651367c6aba51a689f13",
+    "scripts/check_spec.py": "6e862d040a50725b533a580de8cc1b40f89e470b5fb139a6dd5164b8bdeffbd0",
+    "scripts/probe_demo.py": "0c4be0c11688f173c9fb37ec799aecffcb82ecd63f08cf244bd8286cdf381b06",
+    "scripts/python_package_fixture.cjs": "670f159fdb19b02bed31a963e7bc7977fce73d119f87473d8948156763fd89f2",
+    "scripts/sync_package_data.py": "3e1cc633eb979bff98fabaeb543bc36134e4aa0b07c1ff90418234a66e1f923a",
+    "spec/api.md": "414717368a451ef612853d61682830c47f569e0ac8cf7c6c66c6cbf0cb0492c8",
+    "spec/bundle.schema.json": "3b2b1012201dc107bf6e03084077e42bb4a894fbc9732a2326edac2b7cb5f665",
+    "spec/contract.json": "17352418d96ed57597ec731965ce548da176fbb7ac47f9de479b5fe47fca460c",
+    "spec/errors.md": "1e0d1dbcf6121ff4a49ce93b7a773f32f633ab766cdd77b93540fce399fb9aed",
+    "spec/protocol.md": "900dd9dc8da52fd4eeea11549d78fefbc3d5e24606b8caca32837a0eb9917729",
+    "spec/proxy.md": "2f839630e1a03a3bfec1363f9dd35f5324b56e9c1020da1a44e50b568f77ac12",
+    "spec/updates.md": "b2d596cf4d6d062d93c34694a83aca91a8697a7510efc39243b4013ad8bd236c",
+    "spec/vectors/proxies.json": "4f144878301840700c52b7e708cd46c656120f8933d288fa0cf6cbe9107ebb00",
+    "tests/integration/go_consumer/consumer_test.go": "1e4a5c475ec91470cc9f535a45bc9686d73302421098a656db431a982e01c29f",
+    "tests/integration/python_consumer.py": "4c1e300f576c5b2ec65f7a223be2556e50f5a07bc27e3cbae88c03e9ab26f52f"
+  },
+  "not_verified": [
+    "Remote CI execution",
+    "Public registry installation",
+    "Live Node/Go/Rust or enterprise acceptance",
+    "Full benchmark/proxy/concurrency/RSS matrix",
+    "Other operating systems",
+    "Go 1.23"
+  ],
+  "name_lookup": [
+    {
+      "label": "pypi:anchorpass",
+      "url": "https://pypi.org/pypi/anchorpass/json",
+      "status": 404,
+      "body": "{\"message\": \"Not Found\"}"
+    },
+    {
+      "label": "pypi:anchorpasser",
+      "url": "https://pypi.org/pypi/anchorpasser/json",
+      "status": 404,
+      "body": "{\"message\": \"Not Found\"}"
+    },
+    {
+      "label": "npm:anchorpass",
+      "url": "https://registry.npmjs.org/anchorpass",
+      "status": 404,
+      "body": "{\"error\":\"Not found\"}"
+    },
+    {
+      "label": "npm:anchorpasser",
+      "url": "https://registry.npmjs.org/anchorpasser",
+      "status": 404,
+      "body": "{\"error\":\"Not found\"}"
+    },
+    {
+      "label": "crates:anchorpass",
+      "url": "https://crates.io/api/v1/crates/anchorpass",
+      "status": 404,
+      "body": "{\"errors\":[{\"detail\":\"crate `anchorpass` does not exist\"}]}"
+    },
+    {
+      "label": "crates:anchorpasser",
+      "url": "https://crates.io/api/v1/crates/anchorpasser",
+      "status": 404,
+      "body": "{\"errors\":[{\"detail\":\"crate `anchorpasser` does not exist\"}]}"
+    },
+    {
+      "label": "github:anchorpass",
+      "url": "https://api.github.com/repos/nazavod777/anchorpass",
+      "status": 404,
+      "body": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/repos/repos#get-a-repository\",\"status\":\"404\"}"
+    },
+    {
+      "label": "github:anchorpasser",
+      "url": "https://api.github.com/repos/nazavod777/anchorpasser",
+      "status": 404,
+      "body": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/repos/repos#get-a-repository\",\"status\":\"404\"}"
+    }
+  ],
+  "name_lookup_note": "404 means no publicly retrievable package/repository metadata; it does not guarantee registration rights or exclude private GitHub repositories."
+}

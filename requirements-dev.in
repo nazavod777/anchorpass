@@ -1,0 +1,10 @@
+-e ./python[dev]
+curl_cffi>=0.17,<0.18
+httpx[socks]
+aiohttp
+aiohttp-socks
+httpx-socks
+requests[socks]
+urllib3[socks]
+pycurl==7.49.0
+jsonschema

@@ -1,0 +1,74 @@
+name: verify
+on: [push, pull_request]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: js/package-lock.json
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache: false
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: '1.92.0'
+          components: rustfmt, clippy
+      - run: python -m venv .venv
+      - run: .venv/bin/pip install -r requirements-dev.lock
+      - run: cd js && npm ci
+      - run: make check
+      - run: make test-package-install
+      - run: make test-benchmark-adapters
+      - run: make test-pressure-adapters test-live-helpers
+  go-minimum:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.0'
+          cache: false
+      - run: cd go && go vet ./... && go test -race ./... && go build ./...
+  python-minimum:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m venv .venv
+      - run: .venv/bin/pip install -r requirements-dev.lock
+      - run: make check-spec check-package-data test-python
+  node-minimum:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.0.0'
+          cache: npm
+          cache-dependency-path: js/package-lock.json
+      - run: cd js && npm ci && npm run lint && npm run typecheck && npm test && npm run build && npm pack && npm run test:package
+  rust-current:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - run: cd rust && cargo fmt --check && cargo clippy --locked --all-features --all-targets -- -D warnings
+      - run: cd rust && cargo test --locked --all-features && cargo test --locked --no-default-features && cargo test --locked --no-default-features --features async && cargo test --locked --no-default-features --features blocking
+      - run: cd rust && cargo test --locked --all-features process_refresh_registry_limit_and_cleanup -- --ignored --test-threads=1 && cargo build --locked --all-features

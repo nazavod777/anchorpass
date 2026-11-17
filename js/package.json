@@ -1,0 +1,44 @@
+{
+  "name": "anchorpass",
+  "version": "0.1.1",
+  "description": "Bounded HTTP protocol client with signed data and synchronous Node bridge",
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "data",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "build": "tsc && node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "lint": "node scripts/lint.mjs",
+    "test": "npm run build && node --test tests/*.test.cjs",
+    "bench": "node benchmarks/run.cjs && node scripts/report-benchmark.cjs",
+    "prepack": "npm run build",
+    "test:package": "node scripts/package-smoke.cjs"
+  },
+  "dependencies": {
+    "html-entities": "2.6.0",
+    "undici": "6.29.1"
+  },
+  "devDependencies": {
+    "@types/node": "22.10.10",
+    "axios": "1.21.1",
+    "got": "16.2.0",
+    "typescript": "5.7.3"
+  }
+}

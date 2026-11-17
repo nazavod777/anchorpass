@@ -1,0 +1,7 @@
+module anchorpass-pressure
+
+go 1.23.0
+
+require github.com/nazavod777/anchorpass/go v0.1.0
+
+replace github.com/nazavod777/anchorpass/go => ../../../go

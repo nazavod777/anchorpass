@@ -1,0 +1,12 @@
+{
+  "command": [
+    ".venv/bin/python",
+    "benchmarks/pressure/verify_expiry.py",
+    "--output",
+    "/tmp/anchorpass-fix-infrastructure/expiry-final-all"
+  ],
+  "cwd": "/home/nazavod/workWORKWORKworkWORK/anchorpass",
+  "exit_code": 0,
+  "timed_out": false,
+  "log": "/tmp/anchorpass-fix-infrastructure/expiry-final-all.log"
+}

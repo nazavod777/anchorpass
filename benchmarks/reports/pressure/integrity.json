@@ -1,0 +1,11 @@
+{
+  "exit_code": 0,
+  "main_runs": 12,
+  "main_operations": 20652,
+  "expiry_candidates": 4,
+  "gzip_json_artifacts": 8,
+  "broken_doc_links": [],
+  "main_report_revalidated": true,
+  "node60_report_revalidated": true,
+  "marker_report_revalidated": true
+}

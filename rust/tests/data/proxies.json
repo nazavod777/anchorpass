@@ -1,0 +1,62 @@
+[
+  {
+    "value": null,
+    "valid": true
+  },
+  {
+    "value": "http://user:pass@127.0.0.1:8080",
+    "valid": true
+  },
+  {
+    "value": "https://proxy.example:8443",
+    "valid": true
+  },
+  {
+    "value": "socks5h://user:p%40ss@127.0.0.1:1080",
+    "valid": true
+  },
+  {
+    "value": "socks5://[::1]:1080",
+    "valid": true
+  },
+  {
+    "value": "",
+    "valid": false
+  },
+  {
+    "value": "http://localhost",
+    "valid": false
+  },
+  {
+    "value": "http://u:%xx@localhost:80",
+    "valid": false
+  },
+  {
+    "value": "http://localhost:0",
+    "valid": false
+  },
+  {
+    "value": "ftp://localhost:21",
+    "valid": false
+  },
+  {
+    "value": "http://localhost:80/path",
+    "valid": false
+  },
+  {
+    "value": "http://localhost:80?",
+    "valid": false
+  },
+  {
+    "value": "http://localhost:80#",
+    "valid": false
+  },
+  {
+    "value": "http://user:%00@localhost:80",
+    "valid": false
+  },
+  {
+    "value": "http://localhost:80 ",
+    "valid": false
+  }
+]

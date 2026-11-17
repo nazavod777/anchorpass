@@ -1,0 +1,189 @@
+{
+  "schema_version": 1,
+  "rounds": 3,
+  "defaults": {
+    "kind": "transport",
+    "connection_mode": "warm",
+    "concurrency": 8,
+    "warmup": 32,
+    "requests": 128,
+    "timeout_ms": 2000,
+    "max_response_bytes": 65536,
+    "path": "/bytes?size=1024",
+    "expected_bytes": 1024,
+    "expected_error": null,
+    "recovery_requests": 0
+  },
+  "performance": [
+    {
+      "name": "direct-warm-c1",
+      "route": "direct",
+      "concurrency": 1
+    },
+    {
+      "name": "direct-warm-c8",
+      "route": "direct"
+    },
+    {
+      "name": "direct-warm-c32",
+      "route": "direct",
+      "concurrency": 32
+    },
+    {
+      "name": "direct-cold-c1",
+      "route": "direct",
+      "concurrency": 1,
+      "connection_mode": "cold"
+    },
+    {
+      "name": "http-proxy-c8",
+      "route": "http"
+    },
+    {
+      "name": "https-proxy-c8",
+      "route": "https"
+    },
+    {
+      "name": "socks5-local-c8",
+      "route": "socks5"
+    },
+    {
+      "name": "socks5h-remote-c8",
+      "route": "socks5h"
+    },
+    {
+      "name": "delayed-c8",
+      "route": "http",
+      "path": "/bytes?size=1024&delay_ms=20"
+    },
+    {
+      "name": "large-c8",
+      "route": "http",
+      "path": "/bytes?size=65536",
+      "expected_bytes": 65536
+    }
+  ],
+  "capabilities": [
+    {
+      "name": "total-deadline",
+      "route": "http",
+      "path": "/bytes?size=64&drip_ms=20",
+      "timeout_ms": 150,
+      "expected_error": "deadline",
+      "expected_bytes": 64
+    },
+    {
+      "name": "bad-proxy-auth",
+      "route": "bad_auth",
+      "expected_error": "proxy"
+    },
+    {
+      "name": "separate-target-trust",
+      "route": "bad_target",
+      "expected_error": "tls"
+    },
+    {
+      "name": "separate-proxy-trust",
+      "route": "bad_tls",
+      "expected_error": "tls"
+    },
+    {
+      "name": "decompressed-body-limit",
+      "route": "http",
+      "path": "/gzip?size=262144",
+      "expected_error": "response_limit"
+    },
+    {
+      "name": "rate-limit",
+      "route": "http",
+      "path": "/bytes?size=1024&status=429",
+      "expected_error": "http_status"
+    },
+    {
+      "name": "connection-reset",
+      "route": "http",
+      "path": "/reset",
+      "expected_error": "transport"
+    }
+  ],
+  "capability_defaults": {
+    "warmup": 0,
+    "requests": 32,
+    "recovery_requests": 16
+  },
+  "api": [
+    {
+      "name": "api-warm-c1",
+      "kind": "api",
+      "route": "http",
+      "concurrency": 1
+    },
+    {
+      "name": "api-warm-c8",
+      "kind": "api",
+      "route": "http"
+    },
+    {
+      "name": "api-cold-c1",
+      "kind": "api",
+      "route": "http",
+      "concurrency": 1,
+      "connection_mode": "cold"
+    }
+  ],
+  "flow": [
+    {
+      "kind": "flow",
+      "expected_bytes": 13,
+      "name": "flow-direct-warm-c1",
+      "route": "direct",
+      "concurrency": 1
+    },
+    {
+      "kind": "flow",
+      "expected_bytes": 13,
+      "name": "flow-direct-warm-c8",
+      "route": "direct"
+    },
+    {
+      "kind": "flow",
+      "expected_bytes": 13,
+      "name": "flow-direct-warm-c32",
+      "route": "direct",
+      "concurrency": 32
+    },
+    {
+      "kind": "flow",
+      "expected_bytes": 13,
+      "name": "flow-direct-cold-c1",
+      "route": "direct",
+      "concurrency": 1,
+      "connection_mode": "cold"
+    },
+    {
+      "kind": "flow",
+      "expected_bytes": 13,
+      "name": "flow-http-proxy-c8",
+      "route": "http"
+    },
+    {
+      "kind": "flow",
+      "expected_bytes": 13,
+      "name": "flow-https-proxy-c8",
+      "route": "https"
+    },
+    {
+      "kind": "flow",
+      "expected_bytes": 13,
+      "name": "flow-socks5h-c8",
+      "route": "socks5h"
+    },
+    {
+      "kind": "flow",
+      "expected_bytes": 13,
+      "name": "flow-delayed-c8",
+      "route": "http",
+      "flow_delay_ms": 20
+    }
+  ]
+}

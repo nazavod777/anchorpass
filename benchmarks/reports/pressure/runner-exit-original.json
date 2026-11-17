@@ -1,0 +1,15 @@
+{
+  "command": [
+    "/home/nazavod/workWORKWORKworkWORK/anchorpass/.venv/bin/python",
+    "benchmarks/pressure/run.py",
+    "--output",
+    "/tmp/anchorpass-pressure-loader/final",
+    "--rounds",
+    "3",
+    "--batches",
+    "4",
+    "--soak-seconds",
+    "10"
+  ],
+  "exit_code": 0
+}

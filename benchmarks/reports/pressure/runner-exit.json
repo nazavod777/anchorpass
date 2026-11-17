@@ -1,0 +1,21 @@
+{
+  "exit_code": 0,
+  "canonical_raw_sha256": "4e4ecf963f366804ee8d1d108df617faa190117c4c9584936186580f14a925c0",
+  "historical_expiry_revision": "2",
+  "binding": "post-run integrity binding from preserved original runner exit record",
+  "original_record": {
+    "command": [
+      "/home/nazavod/workWORKWORKworkWORK/anchorpass/.venv/bin/python",
+      "benchmarks/pressure/run.py",
+      "--output",
+      "/tmp/anchorpass-pressure-loader/final",
+      "--rounds",
+      "3",
+      "--batches",
+      "4",
+      "--soak-seconds",
+      "10"
+    ],
+    "exit_code": 0
+  }
+}

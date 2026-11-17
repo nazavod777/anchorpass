@@ -1,0 +1,53 @@
+[package]
+name = "anchorpass-transport-pilot"
+version = "0.0.0"
+edition = "2021"
+[[bin]]
+name = "transport-pilot"
+path = "transport.rs"
+[dependencies]
+reqwest = { version = "=0.12.28", default-features = false, features = ["rustls-tls", "socks", "blocking", "stream"] }
+isahc = "1.7"
+
+[[bin]]
+name = "transport-matrix"
+path = "matrix.rs"
+
+[dependencies.anchorpass]
+path = ".."
+features = ["async", "blocking"]
+
+[dependencies.serde]
+version = "1"
+features = ["derive"]
+
+[dependencies.serde_json]
+version = "1"
+
+[dependencies.tokio]
+version = "1"
+features = ["rt", "time", "sync", "macros", "net"]
+
+[dependencies.ureq]
+version = "=3.1.4"
+features = ["socks-proxy"]
+
+[dependencies.libc]
+version = "0.2"
+
+[dependencies.tempfile]
+version = "3"
+
+[features]
+default = ["transport-gzip"]
+transport-gzip = ["reqwest/gzip"]
+
+[dependencies.hyper]
+version = "1"
+
+[dependencies.rustls]
+version = "0.23"
+default-features = false
+
+[dependencies.curl]
+version = "0.4"

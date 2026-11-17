@@ -1,0 +1,79 @@
+{
+  "platform": "Linux-6.8.0-147-generic-x86_64-with-glibc2.39",
+  "compiler": "rustc 1.96.0 (ac68faa20 2026-05-25)",
+  "reqwest": "0.12.28",
+  "isahc": "1.8.3",
+  "profile": "one cold, 100 warm sequential keepalive GET per candidate; alternating order; plaintext loopback only",
+  "results": {
+    "reqwest": {
+      "samples": 100,
+      "p50_us": 59.0,
+      "p95_us": 89,
+      "p99_us": 105,
+      "cold_us": 303
+    },
+    "isahc": {
+      "samples": 100,
+      "p50_us": 106.0,
+      "p95_us": 136,
+      "p99_us": 155,
+      "cold_us": 337
+    }
+  },
+  "limits": {
+    "nofile": 65535,
+    "cgroup_levels": [
+      {
+        "path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/app-t3code.slice/app-t3code-agents.slice/app-t3code-agents-e0bf715c3c5f.slice/t3code-codex-16bc1527.scope",
+        "cpu.max": "max 100000",
+        "memory.max": "max",
+        "pids.max": "76443"
+      },
+      {
+        "path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/app-t3code.slice/app-t3code-agents.slice/app-t3code-agents-e0bf715c3c5f.slice",
+        "cpu.max": "max 100000",
+        "memory.max": "max",
+        "pids.max": "max"
+      },
+      {
+        "path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/app-t3code.slice/app-t3code-agents.slice",
+        "cpu.max": "max 100000",
+        "memory.max": "62711640064",
+        "pids.max": "max"
+      },
+      {
+        "path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/app-t3code.slice",
+        "cpu.max": "max 100000",
+        "memory.max": "max",
+        "pids.max": "13250"
+      },
+      {
+        "path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice",
+        "cpu.max": "max 100000",
+        "memory.max": "max",
+        "pids.max": "max"
+      },
+      {
+        "path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service",
+        "cpu.max": "max 100000",
+        "memory.max": "max",
+        "pids.max": "max"
+      },
+      {
+        "path": "/sys/fs/cgroup/user.slice/user-1000.slice",
+        "cpu.max": "max 100000",
+        "memory.max": "max",
+        "pids.max": "168175"
+      },
+      {
+        "path": "/sys/fs/cgroup/user.slice",
+        "cpu.max": "max 100000",
+        "memory.max": "max",
+        "pids.max": "max"
+      },
+      {
+        "path": "/sys/fs/cgroup"
+      }
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "command": [
+    "/home/nazavod/workWORKWORKworkWORK/anchorpass/.venv/bin/python",
+    "benchmarks/pressure/verify_node_memory.py",
+    "/tmp/anchorpass-pressure-loader/node-gc"
+  ],
+  "budget": {
+    "batches": 64,
+    "batch_size": 128,
+    "concurrency": 2,
+    "warmup": 64,
+    "settle_ms": 200,
+    "total_solve_operations": 8256
+  },
+  "diagnostic_only": "--expose-gc; GC is not used in ordinary workload or package code",
+  "source_hashes": {
+    "/home/nazavod/workWORKWORKworkWORK/anchorpass/benchmarks/pressure/node_adapter.cjs": "514d762ccdda788d1fefa56b38fc6617b4d00b944b6c6f1233bfaf738ee655e6",
+    "/home/nazavod/workWORKWORKworkWORK/anchorpass/benchmarks/pressure/fixture.py": "bc2a343748e8757695a1fdf4bd96895c6fd31f88a1e3b278ce8901de7bba95c7",
+    "/home/nazavod/workWORKWORKworkWORK/anchorpass/benchmarks/pressure/verify_node_memory.py": "2a74f9e8d0466a2d936e14952a408a3d0f3683eafb4dd0e33e5c40e258acc89c"
+  }
+}

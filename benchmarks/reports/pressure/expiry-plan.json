@@ -1,0 +1,24 @@
+{
+  "command": [
+    "/home/nazavod/workWORKWORKworkWORK/anchorpass/.venv/bin/python",
+    "benchmarks/pressure/verify_expiry.py",
+    "--output",
+    "/tmp/anchorpass-pressure-loader/expiry",
+    "--output",
+    "/tmp/anchorpass-pressure-loader/expiry"
+  ],
+  "seed_revision": "2",
+  "expired_revision": "3",
+  "refresh_count": 8,
+  "fallback_count": 8,
+  "candidates": [
+    "python",
+    "node",
+    "go",
+    "rust"
+  ],
+  "source_hashes": {
+    "benchmarks/pressure/fixture.py": "bc2a343748e8757695a1fdf4bd96895c6fd31f88a1e3b278ce8901de7bba95c7",
+    "benchmarks/pressure/verify_expiry.py": "716ddfc3176484148727b44048286b517e7fafe3baab421abfbab6f84614afa4"
+  }
+}

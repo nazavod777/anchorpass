@@ -1,0 +1,235 @@
+{
+  "ordinary_soak_operations": 8320,
+  "ordinary_soak_seconds": 60.111229497997556,
+  "ordinary_soak_batches": 260,
+  "ordinary_final_quarter_rss_delta_bytes": 2469888,
+  "ordinary_final_quarter_heap_delta_bytes": -4771056,
+  "gc_budget": {
+    "batches": 64,
+    "batch_size": 128,
+    "concurrency": 2,
+    "warmup": 64,
+    "settle_ms": 200,
+    "total_solve_operations": 8256
+  },
+  "gc_checkpoint_observations": [
+    {
+      "completed_equal_batches": 0,
+      "solves_after_warmup": 0,
+      "before_gc": {
+        "ok": true,
+        "memory": {
+          "rss": 81575936,
+          "heapTotal": 20348928,
+          "heapUsed": 13296304,
+          "external": 3930198,
+          "arrayBuffers": 1183912
+        },
+        "active_resources": {
+          "PipeWrap": 2
+        }
+      },
+      "after_gc": {
+        "ok": true,
+        "memory": {
+          "rss": 81575936,
+          "heapTotal": 19824640,
+          "heapUsed": 10076280,
+          "external": 3930275,
+          "arrayBuffers": 84386
+        },
+        "active_resources": {
+          "PipeWrap": 2
+        }
+      },
+      "process": {
+        "rss_bytes": 83628032,
+        "threads": 11,
+        "fds": 23
+      }
+    },
+    {
+      "completed_equal_batches": 16,
+      "solves_after_warmup": 2048,
+      "before_gc": {
+        "ok": true,
+        "memory": {
+          "rss": 95485952,
+          "heapTotal": 30048256,
+          "heapUsed": 13387632,
+          "external": 4071098,
+          "arrayBuffers": 1324772
+        },
+        "active_resources": {
+          "PipeWrap": 2
+        }
+      },
+      "after_gc": {
+        "ok": true,
+        "memory": {
+          "rss": 95485952,
+          "heapTotal": 30572544,
+          "heapUsed": 10870000,
+          "external": 4071135,
+          "arrayBuffers": 84386
+        },
+        "active_resources": {
+          "PipeWrap": 2
+        }
+      },
+      "process": {
+        "rss_bytes": 98361344,
+        "threads": 11,
+        "fds": 23
+      }
+    },
+    {
+      "completed_equal_batches": 32,
+      "solves_after_warmup": 4096,
+      "before_gc": {
+        "ok": true,
+        "memory": {
+          "rss": 95977472,
+          "heapTotal": 30834688,
+          "heapUsed": 13483392,
+          "external": 3946840,
+          "arrayBuffers": 1200514
+        },
+        "active_resources": {
+          "PipeWrap": 2
+        }
+      },
+      "after_gc": {
+        "ok": true,
+        "memory": {
+          "rss": 95977472,
+          "heapTotal": 30310400,
+          "heapUsed": 11096808,
+          "external": 3946877,
+          "arrayBuffers": 92578
+        },
+        "active_resources": {
+          "PipeWrap": 2
+        }
+      },
+      "process": {
+        "rss_bytes": 99180544,
+        "threads": 11,
+        "fds": 23
+      }
+    },
+    {
+      "completed_equal_batches": 48,
+      "solves_after_warmup": 6144,
+      "before_gc": {
+        "ok": true,
+        "memory": {
+          "rss": 107724800,
+          "heapTotal": 47349760,
+          "heapUsed": 13279192,
+          "external": 3879904,
+          "arrayBuffers": 1133578
+        },
+        "active_resources": {
+          "PipeWrap": 2
+        }
+      },
+      "after_gc": {
+        "ok": true,
+        "memory": {
+          "rss": 107724800,
+          "heapTotal": 47349760,
+          "heapUsed": 11096992,
+          "external": 3879941,
+          "arrayBuffers": 92578
+        },
+        "active_resources": {
+          "PipeWrap": 2
+        }
+      },
+      "process": {
+        "rss_bytes": 111140864,
+        "threads": 11,
+        "fds": 23
+      }
+    },
+    {
+      "completed_equal_batches": 64,
+      "solves_after_warmup": 8192,
+      "before_gc": {
+        "ok": true,
+        "memory": {
+          "rss": 108191744,
+          "heapTotal": 47611904,
+          "heapUsed": 13657368,
+          "external": 3962950,
+          "arrayBuffers": 1216624
+        },
+        "active_resources": {
+          "PipeWrap": 2
+        }
+      },
+      "after_gc": {
+        "ok": true,
+        "memory": {
+          "rss": 108191744,
+          "heapTotal": 47349760,
+          "heapUsed": 11248304,
+          "external": 3962987,
+          "arrayBuffers": 92578
+        },
+        "active_resources": {
+          "PipeWrap": 2
+        }
+      },
+      "process": {
+        "rss_bytes": 111808512,
+        "threads": 11,
+        "fds": 23
+      }
+    },
+    {
+      "completed_equal_batches": 64,
+      "solves_after_warmup": 8192,
+      "before_gc": {
+        "ok": true,
+        "memory": {
+          "rss": 108191744,
+          "heapTotal": 47349760,
+          "heapUsed": 11337056,
+          "external": 2838996,
+          "arrayBuffers": 92670
+        },
+        "active_resources": {
+          "PipeWrap": 2
+        }
+      },
+      "after_gc": {
+        "ok": true,
+        "memory": {
+          "rss": 108191744,
+          "heapTotal": 47349760,
+          "heapUsed": 11044904,
+          "external": 2839033,
+          "arrayBuffers": 76194
+        },
+        "active_resources": {
+          "PipeWrap": 2
+        }
+      },
+      "process": {
+        "rss_bytes": 111808512,
+        "threads": 11,
+        "fds": 21
+      }
+    }
+  ],
+  "gc_second_half_heap_used_delta_bytes": 151496,
+  "gc_second_half_heap_growth_percent": 1.3652214222324113,
+  "verdict": "Observed runtime/allocator RSS high-water retention with a near-plateau post-GC live heap over this finite window; not proof of no leaks.",
+  "exit_codes": {
+    "ordinary": 0,
+    "gc_adapter": 0,
+    "gc_fixture": 0
+  }
+}
