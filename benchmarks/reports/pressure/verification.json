@@ -1,0 +1,52 @@
+[
+  {
+    "command": [
+      ".venv/bin/python",
+      "-m",
+      "ruff",
+      "check",
+      "--config",
+      "python/pyproject.toml",
+      "benchmarks/pressure"
+    ],
+    "exit_code": 0,
+    "output": "All checks passed!\n"
+  },
+  {
+    "command": [
+      ".venv/bin/python",
+      "-m",
+      "ruff",
+      "format",
+      "--check",
+      "--config",
+      "python/pyproject.toml",
+      "benchmarks/pressure"
+    ],
+    "exit_code": 0,
+    "output": "9 files already formatted\n"
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "benchmarks/pressure/node_adapter.cjs"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      ".venv/bin/python",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "benchmarks",
+      "-p",
+      "test_*.py"
+    ],
+    "exit_code": 0,
+    "output": "............................\n----------------------------------------------------------------------\nRan 28 tests in 0.346s\n\nOK\n"
+  }
+]

@@ -1,0 +1,32 @@
+{
+  "status": "passed",
+  "module": "github.com/nazavod777/anchorpass/go",
+  "version": "v0.1.1",
+  "tag": "go/v0.1.1",
+  "commit": "c0b86f39e8b52598455ac2cd5267a74e6700159b",
+  "origin": {
+    "VCS": "git",
+    "URL": "https://github.com/nazavod777/anchorpass",
+    "Subdir": "go",
+    "Hash": "c0b86f39e8b52598455ac2cd5267a74e6700159b",
+    "Ref": "refs/tags/go/v0.1.1"
+  },
+  "sum": "h1:HkoXOQh7IV2eKO1Yg9S0kxJlRStVp5v2o/694JA5CKE=",
+  "go_mod_sum": "h1:Gok47rpUsDPkC2jMEKUOYgZvu6aox5G8wsBxPQ224ds=",
+  "proxy": "https://proxy.golang.org",
+  "checksum_database": "sum.golang.org",
+  "module_files": 37,
+  "sealed_file_contents_match": true,
+  "public_zip_sha256": "fb3cc14b24002071b2e2f9249f418305df9872d1c7a0e4262394cf86e466cca2",
+  "checks": [
+    "fresh_module_cache",
+    "no_replace",
+    "public_proxy_only",
+    "checksum_database",
+    "public_api_race",
+    "embedded_signed_data",
+    "authenticated_connect",
+    "verified_target_tls",
+    "module_integrity"
+  ]
+}

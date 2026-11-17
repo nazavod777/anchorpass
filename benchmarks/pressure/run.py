@@ -1,0 +1,473 @@
+"""Identical finite public-API loader, failure, overload and soak workloads."""
+
+from __future__ import annotations
+
+import argparse
+import contextlib
+import hashlib
+import json
+import math
+import os
+import subprocess
+import sys
+import threading
+import time
+from collections import Counter
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "benchmarks"))
+from run_matrix import environment, read_line, read_process, terminate  # noqa: E402
+
+HERE = Path(__file__).resolve().parent
+CANDIDATES = ["python", "node", "go", "rust"]
+EXPIRY_SEMANTICS = "monotonic-floor-v1"
+FIXTURE_SAFETY_COUNTERS = (
+    "credential_leaks",
+    "blocked_external_targets",
+    "protocol_errors",
+    "shed_connections",
+)
+
+
+def validate_budget(rounds, batches, batch_size, soak_seconds):
+    if not 1 <= rounds <= 5 or not 2 <= batches <= 16 or not 8 <= batch_size <= 128:
+        raise ValueError("rounds/batches/batch size outside bounded workload")
+    if not 5 <= soak_seconds <= 120:
+        raise ValueError("soak duration must be between 5 and 120 seconds")
+    return {
+        "rounds": rounds,
+        "equal_error_batches": batches,
+        "error_batch_size": batch_size,
+        "minimum_soak_seconds": soak_seconds,
+        "warmup": 8,
+        "warm_loads": 64,
+        "cold_cache_loads": 16,
+        "forced_refreshes": 16,
+        "invalid_refreshes": 8,
+        "expired_refreshes": 8,
+        "invalid_fallback_loads": 8,
+        "expired_floor_loads": 8,
+        "expiry_recovery_loads": 4,
+        "recovery_solves_per_error_batch": 4,
+        "overload_offered": 8,
+        "capacity": 2,
+        "deadline_ms": 180,
+        "settle_ms": 200,
+        "maximum_soak_operations": 100000,
+        "fixed_operations_per_candidate_round": (
+            1 + 8 + 64 + 16 + 16 + 8 + 8 + 16 + 4 + batches * (batch_size * 2 + 4) + 4 + 8 + 4 + 16
+        ),
+    }
+
+
+class Peer:
+    def __init__(self, command, directory, name):
+        self.command = command
+        self.stderr = (directory / f"{name}.stderr.log").open("w")
+        self.log = (directory / f"{name}.rpc.jsonl").open("w")
+        self.process = subprocess.Popen(
+            command,
+            cwd=ROOT,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=self.stderr,
+            text=True,
+            start_new_session=True,
+        )
+        self.observations = []
+        self.sampling_stopped = threading.Event()
+        self.sampling_truncated = False
+
+        def sample_resources():
+            while not self.sampling_stopped.is_set():
+                observed = read_process(self.process.pid)
+                if observed:
+                    if len(self.observations) >= 20000:
+                        self.sampling_truncated = True
+                        return
+                    self.observations.append({"monotonic_ns": time.monotonic_ns(), **observed})
+                self.sampling_stopped.wait(0.02)
+
+        self.sampler = threading.Thread(target=sample_resources, daemon=True)
+        self.sampler.start()
+
+    def call(self, value, timeout=30):
+        self.process.stdin.write(json.dumps(value) + "\n")
+        self.process.stdin.flush()
+        response = read_line(self.process, timeout)
+        self.log.write(json.dumps({"request": value, "response": response}) + "\n")
+        self.log.flush()
+        return response
+
+    def close(self, fixture=False):
+        try:
+            if fixture:
+                self.process.stdin.write('{"command":"stop"}\n')
+                self.process.stdin.flush()
+            self.process.stdin.close()
+            code = self.process.wait(timeout=10)
+            if code:
+                raise RuntimeError(f"peer exited {code}: {self.command}")
+            return code
+        finally:
+            terminate(self.process)
+            self.sampling_stopped.set()
+            self.sampler.join(timeout=2)
+            self.process.stdout.close()
+            self.stderr.close()
+            self.log.close()
+
+
+def quantile(values, fraction):
+    return sorted(values)[max(0, math.ceil(len(values) * fraction) - 1)]
+
+
+def summarize(samples):
+    values = [sample["elapsed_ns"] for sample in samples]
+    return {
+        "count": len(samples),
+        "errors": dict(Counter(sample["error"] or "success" for sample in samples)),
+        **{f"p{p}_ns": quantile(values, p / 100) for p in (50, 95, 99)},
+    }
+
+
+def validate_samples(samples, expected, value=None):
+    if not samples:
+        raise AssertionError("missing samples")
+    for sample in samples:
+        if type(sample.get("elapsed_ns")) is not int or sample["elapsed_ns"] <= 0:
+            raise AssertionError("sample elapsed_ns must be a positive integer")
+        if sample["error"] not in expected:
+            raise AssertionError(f"unexpected public result: {sample}, expected {expected}")
+        if value is not None and sample["error"] is None and sample["value"] != value:
+            raise AssertionError("unexpected successful public value")
+
+
+def validate_fixture_safety(metrics):
+    """A missing sparse Counter entry means zero; recorded values must be exact zeros."""
+    if not isinstance(metrics, dict):
+        raise AssertionError("fixture metrics must be an object")
+    for name in FIXTURE_SAFETY_COUNTERS:
+        value = metrics.get(name, 0)
+        if type(value) is not int or value != 0:
+            raise AssertionError(f"fixture safety counter {name} must be an integer zero")
+
+
+def validate_dns_policy(metrics, route):
+    counts = {}
+    for kind in (1, 3, 4):
+        name = f"socks_atyp:{kind}"
+        value = metrics.get(name, 0)
+        if type(value) is not int or value < 0:
+            raise AssertionError(f"fixture counter {name} must be a nonnegative integer")
+        counts[kind] = value
+    local = counts[1] + counts[4]
+    if route == "socks5":
+        valid = local > 0 and counts[3] == 0
+    elif route == "socks5h":
+        valid = counts[3] > 0 and local == 0
+    else:
+        raise ValueError(f"unknown SOCKS route: {route}")
+    if not valid:
+        raise AssertionError(f"wrong SOCKS wire DNS policy for {route}")
+
+
+def run_candidate(candidate, round_index, output, fixture, metadata, budget, commands):
+    name = f"r{round_index}-{candidate}"
+    job = output / f"{name}.job.json"
+    job.write_text(
+        json.dumps({"fixture": metadata, "cache_path": str(output / f"{name}.cache.json")})
+    )
+    peer = Peer([*commands[candidate], str(job)], output, name)
+    stages, observations = [], []
+
+    def state():
+        metrics = fixture.call({"command": "state"})
+        validate_fixture_safety(metrics)
+        return metrics
+
+    def mode(selected):
+        fixture.call({"command": f"mode:{selected}"})
+
+    def create(**changes):
+        options = dict(
+            op="create",
+            offline=False,
+            proxy_route="http",
+            refresh_interval=3600,
+            timeout_ms=1000,
+            max_in_flight=2,
+        )
+        response = peer.call(options | changes)
+        if response.get("ok") is not True:
+            raise AssertionError(response)
+
+    def operation(label, op, count, expected=(None,), concurrency=1, value=None):
+        before = state()
+        started = time.perf_counter_ns()
+        response = peer.call({"op": op, "count": count, "concurrency": concurrency})
+        elapsed = time.perf_counter_ns() - started
+        after = state()
+        if response.get("ok") is not True or len(response.get("samples", [])) != count:
+            raise AssertionError(response)
+        samples = response["samples"]
+        validate_samples(samples, expected, value)
+        stage = {
+            "name": label,
+            "wall_ns": elapsed,
+            "samples": samples,
+            "summary": summarize(samples),
+            "fixture_delta": {key: after.get(key, 0) - before.get(key, 0) for key in after},
+        }
+        stages.append(stage)
+        return stage
+
+    def settle(label):
+        peer.call({"op": "settle", "milliseconds": budget["settle_ms"]})
+        observed = {"phase": label, **read_process(peer.process.pid)}
+        if candidate == "node":
+            observed["node_diagnostics"] = peer.call({"op": "resources", "collect": False})
+        observations.append(observed)
+
+    try:
+        mode("normal")
+        create()
+        operation("warmup-refresh", "refresh", 1)
+        operation("warmup", "load", budget["warmup"], value="matrix-bg")
+        settle("baseline-warmed")
+        warm = operation("warm-verified-bg", "load", budget["warm_loads"], value="matrix-bg")
+        if warm["fixture_delta"].get("requests", 0) != 0:
+            raise AssertionError("warm load unexpectedly used network")
+        operation("forced-signed-refresh", "refresh", budget["forced_refreshes"])
+        for _ in range(budget["cold_cache_loads"]):
+            create(offline=True)
+            stage = operation("cold-signed-cache", "load", 1, value="matrix-bg")
+            if stage["fixture_delta"].get("requests", 0):
+                raise AssertionError("offline cache load used network")
+        create(refresh_interval=0)
+        for failure in ("invalid", "expired"):
+            mode(failure)
+            expected = "ConfigInvalid" if failure == "invalid" else "ConfigExpired"
+            operation(f"{failure}-explicit", "refresh", 8, (expected,))
+            if failure == "invalid":
+                operation(
+                    "invalid-automatic-fallback",
+                    "load",
+                    budget["invalid_fallback_loads"],
+                    value="matrix-bg",
+                )
+            else:
+                operation(
+                    "expired-automatic-floor", "load", budget["expired_floor_loads"], (expected,)
+                )
+        mode("recover")
+        operation(
+            "expired-floor-recovery", "load", budget["expiry_recovery_loads"], value="matrix-bg"
+        )
+        peer.call({"op": "close"})
+        create(offline=True, timeout_ms=budget["deadline_ms"])
+        for batch in range(budget["equal_error_batches"]):
+            mode("deadline")
+            stage = operation(
+                f"deadline-{batch}",
+                "solve",
+                budget["error_batch_size"],
+                ("DeadlineExceeded",),
+                concurrency=2,
+            )
+            if any(
+                sample["elapsed_ns"] > (budget["deadline_ms"] + 100) * 1000000
+                for sample in stage["samples"]
+            ):
+                raise AssertionError("public deadline exceeded the declared timing tolerance")
+            mode("normal")
+            operation(f"deadline-recovery-{batch}", "solve", 4, value="fixture-token")
+            settle(f"deadline-batch-{batch}")
+        peer.call({"op": "close"})
+        create(offline=True, proxy_route="bad_auth")
+        for batch in range(budget["equal_error_batches"]):
+            stage = operation(
+                f"proxy-error-{batch}",
+                "solve",
+                budget["error_batch_size"],
+                ("TransportError",)
+                if candidate == "python"
+                else ("ProxyAuthError", "ProxyConnectError"),
+                concurrency=2,
+            )
+            if stage["fixture_delta"].get("requests", 0):
+                raise AssertionError("failed proxy bypassed directly to reachable origin")
+            if stage["fixture_delta"].get("proxy_auth_rejected", 0) < 1:
+                raise AssertionError("proxy failure did not exercise real proxy authentication")
+            settle(f"proxy-batch-{batch}")
+        peer.call({"op": "close"})
+        create(offline=True)
+        operation("proxy-recovery", "solve", 4, value="fixture-token")
+        mode("overload")
+        overload = operation(
+            "capacity-overload", "solve", 8, (None, "ResourceLimit"), 8, "fixture-token"
+        )
+        errors = overload["summary"]["errors"]
+        if errors.get("success") != 2 or errors.get("ResourceLimit") != 6:
+            raise AssertionError(f"capacity admission not immediate: {errors}")
+        rejected = [x["elapsed_ns"] for x in overload["samples"] if x["error"]]
+        successful = [x["elapsed_ns"] for x in overload["samples"] if x["error"] is None]
+        if max(rejected) >= min(successful):
+            raise AssertionError("overload results did not precede successful work")
+        mode("normal")
+        operation("overload-recovery", "solve", 4, value="fixture-token")
+        for route in ("socks5", "socks5h"):
+            create(proxy_route=route)
+            stage = operation(f"dns-policy-{route}", "refresh", 4)
+            validate_dns_policy(stage["fixture_delta"], route)
+        proxy_only = metadata["bundle_url"].replace("localhost", "pressure.invalid")
+        create(proxy_route="socks5h", bundle_url=proxy_only)
+        remote = operation("dns-proxy-only-remote", "refresh", 4)
+        if remote["fixture_delta"].get("proxy_only_name_resolutions", 0) < 1:
+            raise AssertionError("remote-only name was not resolved by the proxy")
+        if remote["fixture_delta"].get("path:/bundle", 0) != 4:
+            raise AssertionError("remote-only update requests did not reach the origin")
+        create(proxy_route="socks5", bundle_url=proxy_only)
+        local = operation(
+            "dns-proxy-only-local-negative", "refresh", 4, ("TransportError", "ProxyConnectError")
+        )
+        if local["fixture_delta"].get("requests", 0):
+            raise AssertionError("local DNS unexpectedly reached the proxy-only origin")
+        create(offline=True)
+        started = time.monotonic()
+        completed = 0
+        while time.monotonic() - started < budget["minimum_soak_seconds"]:
+            if completed + 32 > budget["maximum_soak_operations"]:
+                raise AssertionError("finite soak operation budget exhausted")
+            operation("soak-equal-batch", "solve", 32, concurrency=2, value="fixture-token")
+            completed += 32
+            settle("soak-batch")
+        soak_wall = time.monotonic() - started
+        peer.call({"op": "close"})
+        settle("after-close")
+        code = peer.close()
+        return {
+            "candidate": candidate,
+            "round": round_index,
+            "command": peer.command,
+            "exit_code": code,
+            "stages": stages,
+            "resource_observations": observations,
+            "resource_samples_20ms": peer.observations,
+            "resource_sampling_truncated": peer.sampling_truncated,
+            "soak_operations": completed,
+            "soak_wall_seconds": soak_wall,
+        }
+    except BaseException:
+        terminate(peer.process)
+        with contextlib.suppress(Exception):
+            peer.close()
+        raise
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--rounds", type=int, default=3)
+    parser.add_argument("--batches", type=int, default=4)
+    parser.add_argument("--batch-size", type=int, default=8)
+    parser.add_argument("--soak-seconds", type=float, default=10)
+    parser.add_argument("--candidates", nargs="+", choices=CANDIDATES, default=CANDIDATES)
+    args = parser.parse_args()
+    if len(args.candidates) != len(set(args.candidates)):
+        raise ValueError("duplicate candidates")
+    budget = validate_budget(args.rounds, args.batches, args.batch_size, args.soak_seconds)
+    output = args.output.resolve()
+    output.mkdir(parents=True, exist_ok=False)
+    (output / "exit-record.json").write_text(
+        json.dumps({"exit_code": None, "status": "running"}) + "\n"
+    )
+    try:
+        execute(args, budget, output)
+    except BaseException as error:
+        record = {
+            "exit_code": 130 if isinstance(error, KeyboardInterrupt) else 1,
+            "error_type": type(error).__name__,
+        }
+        (output / "exit-record.json").write_text(json.dumps(record) + "\n")
+        raise
+
+
+def execute(args, budget, output):
+    commands = {
+        "python": [sys.executable, str(HERE / "python_adapter.py")],
+        "node": ["node", str(HERE / "node_adapter.cjs")],
+        "go": [str(HERE / "go/pressure-go")],
+        "rust": [str(HERE / "rust/target/release/pressure-rust")],
+    }
+    plan = {
+        "command": [sys.executable, *sys.argv],
+        "expiry_semantics": EXPIRY_SEMANTICS,
+        "budget": budget,
+        "environment": environment(),
+        "source_hashes": {
+            str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in HERE.rglob("*")
+            if p.is_file()
+            and "target" not in p.parts
+            and "__pycache__" not in p.parts
+            and p.name != "pressure-go"
+        },
+        "candidates": args.candidates,
+        "pid": os.getpid(),
+    }
+    (output / "plan.json").write_text(json.dumps(plan, indent=2) + "\n")
+    fixture_directory = output / "fixture"
+    fixture_directory.mkdir()
+    fixture = None
+    results = []
+    try:
+        fixture = Peer(
+            [sys.executable, str(HERE / "fixture.py"), str(fixture_directory)], output, "fixture"
+        )
+        ready = read_line(fixture.process)
+        if ready.get("ready") is not True:
+            raise AssertionError("fixture not ready")
+        metadata = ready["fixture"]
+        for index in range(args.rounds):
+            order = (
+                args.candidates[index % len(args.candidates) :]
+                + args.candidates[: index % len(args.candidates)]
+            )
+            for candidate in order:
+                print(f"round={index} candidate={candidate}", flush=True)
+                result = run_candidate(
+                    candidate, index, output, fixture, metadata, budget, commands
+                )
+                results.append(result)
+                (output / "raw.json").write_text(
+                    json.dumps({"plan": plan, "results": results}, indent=2) + "\n"
+                )
+                (output / f"r{index}-{candidate}.exit.json").write_text(
+                    json.dumps({"exit_code": result["exit_code"]}) + "\n"
+                )
+        validate_fixture_safety(fixture.call({"command": "state"}))
+        code = fixture.close(fixture=True)
+        evidence = {"plan": plan, "results": results}
+        digest = hashlib.sha256(
+            json.dumps(evidence, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()
+        record = {
+            "exit_code": 0,
+            "fixture_exit_code": code,
+            "completed_runs": len(results),
+            "canonical_raw_sha256": digest,
+        }
+        for filename in ("complete.json", "exit-record.json"):
+            (output / filename).write_text(json.dumps(record) + "\n")
+    except BaseException:
+        if fixture is not None:
+            terminate(fixture.process)
+            with contextlib.suppress(Exception):
+                fixture.close()
+        raise
+
+
+if __name__ == "__main__":
+    main()

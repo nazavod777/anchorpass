@@ -1,0 +1,268 @@
+name: production-channel
+
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+    inputs:
+      validate_now:
+        description: Run all local and public Google acceptance gates even outside the renewal window
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: anchorpass-production-channel
+  cancel-in-progress: false
+
+jobs:
+  validation:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    outputs:
+      checked_sha: ${{ steps.base.outputs.sha }}
+      due: ${{ steps.expiry.outputs.due }}
+      revision: ${{ steps.expiry.outputs.revision }}
+      expires_at: ${{ steps.expiry.outputs.expires_at }}
+      remaining_seconds: ${{ steps.expiry.outputs.remaining_seconds }}
+      fields_sha256: ${{ steps.fixture.outputs.fields_sha256 }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Record the checked main commit
+        id: base
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m venv .venv
+      - run: .venv/bin/pip install -r requirements-dev.lock
+      - name: Authenticate the current production channel and check expiry without a signer
+        id: expiry
+        run: |
+          .venv/bin/python scripts/renew_channel.py check > "$RUNNER_TEMP/channel-expiry.json"
+          cat "$RUNNER_TEMP/channel-expiry.json" >> "$GITHUB_STEP_SUMMARY"
+          due=$(jq -r .needs_renewal "$RUNNER_TEMP/channel-expiry.json")
+          echo "due=$due" >> "$GITHUB_OUTPUT"
+          echo "revision=$(jq -r .revision "$RUNNER_TEMP/channel-expiry.json")" >> "$GITHUB_OUTPUT"
+          echo "expires_at=$(jq -r .expires_at "$RUNNER_TEMP/channel-expiry.json")" >> "$GITHUB_OUTPUT"
+          echo "remaining_seconds=$(jq -r .remaining_seconds "$RUNNER_TEMP/channel-expiry.json")" >> "$GITHUB_OUTPUT"
+          if [ "$due" = true ]; then
+            echo '::warning::Production channel expires within seven days or has expired; renewal is required.'
+          fi
+      - uses: actions/setup-node@v4
+        if: steps.expiry.outputs.due == 'true' || inputs.validate_now == true
+        with:
+          node-version: '22'
+      - uses: actions/setup-go@v5
+        if: steps.expiry.outputs.due == 'true' || inputs.validate_now == true
+        with:
+          go-version: '1.25'
+          cache: false
+      - uses: dtolnay/rust-toolchain@stable
+        if: steps.expiry.outputs.due == 'true' || inputs.validate_now == true
+        with:
+          toolchain: '1.92.0'
+          components: rustfmt, clippy
+      - name: Stage exact checked source with fresh ephemeral test-only signed data
+        id: fixture
+        if: steps.expiry.outputs.due == 'true' || inputs.validate_now == true
+        env:
+          CHECKED_SHA: ${{ steps.base.outputs.sha }}
+        run: |
+          .venv/bin/python scripts/channel_validation.py stage --destination "$RUNNER_TEMP/channel-validation" --commit "$CHECKED_SHA" > "$RUNNER_TEMP/channel-validation.json"
+          cat "$RUNNER_TEMP/channel-validation.json" >> "$GITHUB_STEP_SUMMARY"
+          echo "fields_sha256=$(jq -r .fields_sha256 "$RUNNER_TEMP/channel-validation.json")" >> "$GITHUB_OUTPUT"
+      - name: Install the validation checkout in its own environment
+        if: steps.expiry.outputs.due == 'true' || inputs.validate_now == true
+        working-directory: ${{ runner.temp }}/channel-validation
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install -r requirements-dev.lock
+          npm --prefix js ci
+      - name: Require the complete local contract before any access to the production signer
+        if: steps.expiry.outputs.due == 'true' || inputs.validate_now == true
+        working-directory: ${{ runner.temp }}/channel-validation
+        run: make check
+      - name: Require public Google acceptance in every supported live mode
+        if: steps.expiry.outputs.due == 'true' || inputs.validate_now == true
+        working-directory: ${{ runner.temp }}/channel-validation
+        run: |
+          make test-live LIVE_OUTPUT="$RUNNER_TEMP/channel-google-live.json" LIVE_ARGS="--sites google --modes python-sync python-async node-async node-sync go rust-async rust-blocking"
+      - name: Confirm isolated data and exact source after all gates
+        if: steps.expiry.outputs.due == 'true' || inputs.validate_now == true
+        env:
+          CHECKED_SHA: ${{ steps.base.outputs.sha }}
+        run: |
+          .venv/bin/python scripts/channel_validation.py verify --destination "$RUNNER_TEMP/channel-validation" --commit "$CHECKED_SHA"
+          test "$(git rev-parse HEAD)" = "$CHECKED_SHA"
+          test "$(timeout 30s git ls-remote --exit-code origin refs/heads/main | cut -f1)" = "$CHECKED_SHA"
+          test -z "$(git status --porcelain --untracked-files=all)"
+      - name: Retain only public expiry and acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-channel-validation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/channel-expiry.json
+            ${{ runner.temp }}/channel-validation.json
+            ${{ runner.temp }}/channel-google-live.json
+          if-no-files-found: warn
+          retention-days: 90
+
+  signing:
+    needs: validation
+    if: needs.validation.outputs.due == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    outputs:
+      revision: ${{ steps.renewal.outputs.revision }}
+      published: ${{ steps.publish.outputs.published }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validation.outputs.checked_sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m venv .venv
+      - run: .venv/bin/pip install -r requirements-dev.lock
+      - name: Reauthenticate production inputs on a fresh runner at the checked main
+        env:
+          CHECKED_SHA: ${{ needs.validation.outputs.checked_sha }}
+          VALIDATED_FIELDS_SHA256: ${{ needs.validation.outputs.fields_sha256 }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$CHECKED_SHA"
+          test "$(timeout 30s git ls-remote --exit-code origin refs/heads/main | cut -f1)" = "$CHECKED_SHA"
+          test -z "$(git status --porcelain --untracked-files=all)"
+          .venv/bin/python scripts/renew_channel.py check > "$RUNNER_TEMP/channel-expiry-before-signing.json"
+          test "$(jq -r .needs_renewal "$RUNNER_TEMP/channel-expiry-before-signing.json")" = true
+          .venv/bin/python - <<'PYFIELDS'
+          from pathlib import Path
+          import hashlib
+          import os
+          import sys
+          sys.path.insert(0, 'scripts')
+          from anchorpass.bundle import verify_bundle
+          import release
+          from renew_channel import read_fields, read_keys
+          keys = read_keys(Path('data/bundled/keys.json'))
+          verify_bundle(Path('data/bundled/bundle.json').read_bytes(), keys)
+          fields = read_fields(Path('data/upstream-fields.json'))
+          digest = hashlib.sha256(release.canonical(fields)).hexdigest()
+          if digest != os.environ['VALIDATED_FIELDS_SHA256']:
+              raise SystemExit('Approved fields differ from the validated fields')
+          PYFIELDS
+      - name: Renew locally with the approved repository signing secret
+        id: renewal
+        env:
+          ANCHORPASS_SIGNING_KEY_PEM: ${{ secrets.ANCHORPASS_SIGNING_KEY_PEM }}
+        run: |
+          .venv/bin/python scripts/renew_channel.py renew > "$RUNNER_TEMP/channel-renewal.json"
+          cat "$RUNNER_TEMP/channel-renewal.json" >> "$GITHUB_STEP_SUMMARY"
+          echo "renewed=$(jq -r .renewed "$RUNNER_TEMP/channel-renewal.json")" >> "$GITHUB_OUTPUT"
+          echo "revision=$(jq -r .revision "$RUNNER_TEMP/channel-renewal.json")" >> "$GITHUB_OUTPUT"
+      - name: Publish only the new revision and latest pointer to the checked main
+        id: publish
+        if: steps.renewal.outputs.renewed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHECKED_SHA: ${{ needs.validation.outputs.checked_sha }}
+          CHANNEL_REVISION: ${{ steps.renewal.outputs.revision }}
+        run: |
+          [[ "$CHANNEL_REVISION" =~ ^[1-9][0-9]{0,19}$ ]]
+          test "$(git rev-parse HEAD)" = "$CHECKED_SHA"
+          test "$(timeout 30s git ls-remote --exit-code origin refs/heads/main | cut -f1)" = "$CHECKED_SHA"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- channels/recaptcha-v3-1/latest.json "channels/recaptcha-v3-1/revisions/$CHANNEL_REVISION.json"
+          git commit -m "Renew production channel revision $CHANNEL_REVISION"
+          timeout 60s git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin HEAD:refs/heads/main
+          echo 'published=true' >> "$GITHUB_OUTPUT"
+      - name: Retain public renewal evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-channel-renewal-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/channel-expiry-before-signing.json
+            ${{ runner.temp }}/channel-renewal.json
+          if-no-files-found: warn
+          retention-days: 90
+
+  notification:
+    needs: [validation, signing]
+    if: always() && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    steps:
+      - name: Update one operational issue for expiry warnings or failures
+        uses: actions/github-script@v7
+        env:
+          VALIDATION_RESULT: ${{ needs.validation.result }}
+          SIGNING_RESULT: ${{ needs.signing.result }}
+          CHANNEL_DUE: ${{ needs.validation.outputs.due }}
+          CHANNEL_CURRENT_REVISION: ${{ needs.validation.outputs.revision }}
+          CHANNEL_EXPIRES_AT: ${{ needs.validation.outputs.expires_at }}
+          CHANNEL_REMAINING_SECONDS: ${{ needs.validation.outputs.remaining_seconds }}
+          CHANNEL_REVISION: ${{ needs.signing.outputs.revision }}
+          CHANNEL_PUBLISHED: ${{ needs.signing.outputs.published }}
+        with:
+          script: |
+            const title = '[channel] Production renewal and expiry';
+            const failed = process.env.VALIDATION_RESULT !== 'success' || ['failure', 'cancelled'].includes(process.env.SIGNING_RESULT);
+            const due = process.env.CHANNEL_DUE === 'true';
+            const published = process.env.CHANNEL_PUBLISHED === 'true';
+            const unresolved = failed || (due && !published);
+            const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            let issue;
+            let complete = false;
+            // Bound enumeration and refuse to create a duplicate if the search is incomplete.
+            for (let page = 1; page <= 10; page++) {
+              const { data } = await github.rest.issues.listForRepo({
+                ...context.repo, state: 'all', per_page: 100, page,
+                request: { timeout: 30000 }
+              });
+              issue = data.find(item => !item.pull_request && item.title === title && item.user?.login === 'github-actions[bot]');
+              if (issue || data.length < 100) { complete = true; break; }
+            }
+            if (!complete) throw new Error('Could not complete the bounded operational issue lookup');
+            if (!issue && !due && !unresolved) return;
+            let expiry = 'Current channel could not be authenticated or inspected.';
+            if (process.env.CHANNEL_EXPIRES_AT) {
+              expiry = `Revision ${process.env.CHANNEL_CURRENT_REVISION}; expires ${new Date(Number(process.env.CHANNEL_EXPIRES_AT) * 1000).toISOString()}; remaining ${process.env.CHANNEL_REMAINING_SECONDS} seconds.`;
+            }
+            const result = unresolved
+              ? 'Renewal needs attention. Check the failed step and public evidence; no automatic retry or force push was attempted.'
+              : published
+                ? `Renewal published revision ${process.env.CHANNEL_REVISION}.`
+                : 'The authenticated channel is outside the seven-day renewal window.';
+            const body = [
+              due ? 'Daily warning: the channel reached its seven-day renewal window (or expired).' : 'Daily channel status.',
+              expiry, result, `Run: ${run}`,
+              'Recovery: follow docs/channel-operations.md. Never publish a lower revision or edit an immutable object.'
+            ].join('\n\n');
+            if (issue) {
+              await github.rest.issues.update({
+                ...context.repo, issue_number: issue.number, body,
+                state: unresolved ? 'open' : 'closed', request: { timeout: 30000 }
+              });
+            } else {
+              const created = await github.rest.issues.create({
+                ...context.repo, title, body: `@nazavod777\n\n${body}`, request: { timeout: 30000 }
+              });
+              if (!unresolved) await github.rest.issues.update({
+                ...context.repo, issue_number: created.data.number, state: 'closed',
+                request: { timeout: 30000 }
+              });
+            }

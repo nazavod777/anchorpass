@@ -1,0 +1,161 @@
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: Prepare locally, or publish an already reviewed artifact
+        type: choice
+        options: [prepare, publish]
+        default: prepare
+      version:
+        description: Exact common package version
+        required: true
+        default: '0.1.1'
+      prepared_run_id:
+        description: Prior release run containing the approved artifact (publish only)
+        default: ''
+      approved_manifest_sha256:
+        description: Reviewed release.json SHA256 (publish only)
+        default: ''
+      target:
+        description: Registry to publish; Go tags require a separate reviewed handoff
+        type: choice
+        options: [all, python, npm, rust]
+        default: all
+      retry_unconfirmed:
+        description: Allow retry only after investigating a prior unconfirmed upload
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: anchorpass-release-${{ inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: inputs.operation == 'prepare'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: js/package-lock.json
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache: false
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: '1.92.0'
+          components: rustfmt, clippy
+      - run: python -m venv .venv
+      - run: .venv/bin/pip install -r requirements-dev.lock
+      - run: npm --prefix js ci
+      - run: make check test-package-install
+      - run: .venv/bin/python -m unittest discover -s tests/release -p 'test_*.py' -v
+      - name: Prepare and verify the exact release bytes
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          .venv/bin/python scripts/release.py prepare --version "$RELEASE_VERSION" --output artifacts/release
+          .venv/bin/python scripts/release.py verify --output artifacts/release
+          .venv/bin/python scripts/release_check.py --output artifacts/release --work-dir "$RUNNER_TEMP/anchorpass-sealed-check"
+          sha256sum artifacts/release/release.json >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain exact installed artifact evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: anchorpass-sealed-check-${{ inputs.version }}
+          path: |
+            ${{ runner.temp }}/anchorpass-sealed-check/*.log
+            ${{ runner.temp }}/anchorpass-sealed-check/result.json
+          if-no-files-found: warn
+          retention-days: 90
+      - uses: actions/upload-artifact@v4
+        with:
+          name: anchorpass-release-${{ inputs.version }}
+          path: artifacts/release/
+          if-no-files-found: error
+          retention-days: 90
+
+  publish:
+    if: inputs.operation == 'publish'
+    environment: anchorpass-production
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require the same reviewed workflow revision
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PREPARED_RUN_ID: ${{ inputs.prepared_run_id }}
+          APPROVED_MANIFEST: ${{ inputs.approved_manifest_sha256 }}
+        run: |
+          [[ "$PREPARED_RUN_ID" =~ ^[0-9]+$ ]]
+          [[ "$APPROVED_MANIFEST" =~ ^[0-9a-f]{64}$ ]]
+          test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$PREPARED_RUN_ID" --jq .head_sha)" = "$GITHUB_SHA"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$PREPARED_RUN_ID" --jq .path)" = '.github/workflows/release.yml'
+      - uses: actions/download-artifact@v4
+        with:
+          name: anchorpass-release-${{ inputs.version }}
+          path: artifacts/release
+          run-id: ${{ inputs.prepared_run_id }}
+          github-token: ${{ github.token }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: '1.92.0'
+      - run: python -m venv .venv
+      - run: .venv/bin/pip install 'twine==7.0.0'
+      - name: Publish missing files and confirm exact registry bytes
+        env:
+          RELEASE_TARGET: ${{ inputs.target }}
+          RELEASE_VERSION: ${{ inputs.version }}
+          APPROVED_MANIFEST: ${{ inputs.approved_manifest_sha256 }}
+          RETRY_UNCONFIRMED: ${{ inputs.retry_unconfirmed }}
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
+        run: |
+          .venv/bin/python scripts/release.py verify --output artifacts/release
+          .venv/bin/python - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+          manifest = json.loads(Path('artifacts/release/release.json').read_bytes())
+          if manifest['version'] != os.environ['RELEASE_VERSION']:
+              raise SystemExit('Artifact version differs from requested publication')
+          targets = ('python', 'npm', 'rust') if os.environ['RELEASE_TARGET'] == 'all' else (os.environ['RELEASE_TARGET'],)
+          for target in targets:
+              command = ['.venv/bin/python', 'scripts/release_publish.py', '--output', 'artifacts/release',
+                              '--target', target, '--approved-manifest-sha256', os.environ['APPROVED_MANIFEST'],
+                              '--execute']
+              if os.environ.get('RETRY_UNCONFIRMED') == 'true':
+                  command.append('--retry-unconfirmed')
+              subprocess.run(command, check=True, timeout=1200)
+          PY
+      - name: Retain receipts even when publication is partial
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: anchorpass-release-${{ inputs.version }}
+          path: artifacts/release/
+          if-no-files-found: error
+          retention-days: 90

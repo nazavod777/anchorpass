@@ -1,0 +1,52 @@
+{
+  "ancestors": [
+    {
+      "path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/app-t3code.slice/app-t3code-agents.slice/app-t3code-agents-e0bf715c3c5f.slice/t3code-codex-2a747aa2.scope",
+      "cpu.max": "max 100000",
+      "memory.max": "max"
+    },
+    {
+      "path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/app-t3code.slice/app-t3code-agents.slice/app-t3code-agents-e0bf715c3c5f.slice",
+      "cpu.max": "max 100000",
+      "memory.max": "max"
+    },
+    {
+      "path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/app-t3code.slice/app-t3code-agents.slice",
+      "cpu.max": "max 100000",
+      "memory.max": "62711640064"
+    },
+    {
+      "path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/app-t3code.slice",
+      "cpu.max": "max 100000",
+      "memory.max": "max"
+    },
+    {
+      "path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice",
+      "cpu.max": "max 100000",
+      "memory.max": "max"
+    },
+    {
+      "path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service",
+      "cpu.max": "max 100000",
+      "memory.max": "max"
+    },
+    {
+      "path": "/sys/fs/cgroup/user.slice/user-1000.slice",
+      "cpu.max": "max 100000",
+      "memory.max": "max"
+    },
+    {
+      "path": "/sys/fs/cgroup/user.slice",
+      "cpu.max": "max 100000",
+      "memory.max": "max",
+      "cpuset.cpus.effective": "0-31"
+    },
+    {
+      "path": "/sys/fs/cgroup",
+      "cpuset.cpus.effective": "0-31"
+    }
+  ],
+  "effective_cpu_quota_cores": null,
+  "effective_memory_quota_bytes": 62711640064,
+  "observation_timing": "after the main measured run; quotas were not sampled during each operation"
+}

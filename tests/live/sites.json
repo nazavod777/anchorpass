@@ -1,0 +1,32 @@
+{
+  "google": {
+    "page": "https://recaptcha-demo.appspot.com/recaptcha-v3-request-scores.php",
+    "verify": "https://recaptcha-demo.appspot.com/recaptcha-v3-verify.php",
+    "action": "examples/v3scores",
+    "variant": "api2",
+    "adapter": "google"
+  },
+  "two-captcha-v3": {
+    "page": "https://2captcha.com/demo/recaptcha-v3",
+    "verify": "https://2captcha.com/api/v1/captcha-demo/recaptcha/verify",
+    "action": "demo_action",
+    "variant": "api2",
+    "adapter": "two-captcha",
+    "site_key": "6Lcyqq8oAAAAAJE7eVJ3aZp_hnJcI6LgGdYD8lge"
+  },
+  "two-captcha-enterprise": {
+    "page": "https://2captcha.com/demo/recaptcha-v3-enterprise",
+    "verify": "https://2captcha.com/api/v1/captcha-demo/recaptcha-enterprise/verify",
+    "action": "demo_action",
+    "variant": "enterprise",
+    "adapter": "two-captcha",
+    "site_key": "6Lel38UnAAAAAMRwKj9qLH2Ws4Tf2uTDQCyfgR6b"
+  },
+  "zennolab": {
+    "page": "https://lessons.zennolab.com/captchas/recaptcha/v3.php?level=beta",
+    "verify": "https://lessons.zennolab.com/captchas/recaptcha/v3_verify.php?level=beta",
+    "action": "verify",
+    "variant": "api2",
+    "adapter": "zennolab"
+  }
+}

@@ -1,0 +1,59 @@
+/* Public Node async API; bounded JSON-line operations, no transport internals. */
+'use strict';
+const fs = require('node:fs');
+const readline = require('node:readline');
+const { setTimeout: delay } = require('node:timers/promises');
+const { Client } = require('../../js/dist/index.js');
+
+async function main() {
+  const job = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+  const f = job.fixture;
+  let client;
+  try {
+    for await (const line of readline.createInterface({ input: process.stdin })) {
+      const c = JSON.parse(line);
+      let result = { ok: true };
+      if (c.op === 'create') {
+        if (client) await client.closeAsync();
+        client = new Client({ proxy: f.proxies[c.proxy_route], timeout: c.timeout_ms / 1000,
+          updateTimeout: c.timeout_ms / 1000, maxInFlight: c.max_in_flight,
+          refreshInterval: c.refresh_interval, offline: c.offline, cachePath: job.cache_path,
+          bundleUrl: c.bundle_url || f.bundle_url, trustedKeys: f.trusted_keys, ca: fs.readFileSync(f.ca_file, 'utf8') });
+      } else if (c.op === 'close') {
+        if (client) await client.closeAsync();
+        client = undefined;
+      } else if (c.op === 'settle') await delay(c.milliseconds);
+      else if (c.op === 'resources') {
+        if (c.collect) {
+          if (typeof global.gc !== 'function') throw new Error('Diagnostic GC requires --expose-gc');
+          global.gc();
+        }
+        const active = {};
+        for (const kind of process.getActiveResourcesInfo()) active[kind] = (active[kind] || 0) + 1;
+        result = { ok: true, memory: process.memoryUsage(), active_resources: active };
+      }
+      else {
+        if (!(c.count > 0 && c.count <= 128 && c.concurrency > 0 && c.concurrency <= 8)) throw new Error('Operation budget exceeded');
+        const samples = new Array(c.count);
+        let next = 0;
+        await Promise.all(Array.from({ length: Math.min(c.count, c.concurrency) }, async () => {
+          while (next < c.count) {
+            const index = next++;
+            const started = process.hrtime.bigint();
+            let error = null, value = null;
+            try {
+              if (c.op === 'load') value = await client.loadBg();
+              else if (c.op === 'refresh') await client.refresh();
+              else if (c.op === 'solve') value = (await client.solve(f.anchor_url)).token;
+              else throw new Error('Invalid operation');
+            } catch (failure) { error = failure.code || failure.name; }
+            samples[index] = { elapsed_ns: Number(process.hrtime.bigint() - started), error, value };
+          }
+        }));
+        result = { ok: true, samples };
+      }
+      process.stdout.write(`${JSON.stringify(result)}\n`);
+    }
+  } finally { if (client) await client.closeAsync(); }
+}
+main().catch(error => { process.stderr.write(`${error.stack}\n`); process.exitCode = 1; });

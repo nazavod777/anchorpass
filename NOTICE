@@ -1,0 +1,8 @@
+Anchorpass contains protocol data and design elements derived from PyPasser.
+Upstream: https://github.com/xHossein/PyPasser
+Source revision: 910c3def3d69e68d42d86ccba5a1b4cf105ee1ed
+Copyright (c) 2021 xHossein. Distributed under the MIT License.
+
+The original invisible_captcha_bypasser project is the historical starting point:
+https://github.com/nazavod777/invisible_captcha_bypasser
+Anchorpass is a new implementation, without a compatibility wrapper.

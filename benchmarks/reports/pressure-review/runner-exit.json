@@ -1,0 +1,25 @@
+{
+  "command": [
+    ".venv/bin/python",
+    "benchmarks/pressure/run.py",
+    "--output",
+    "/tmp/anchorpass-fix-infrastructure/pressure-current-all",
+    "--rounds",
+    "1",
+    "--batches",
+    "2",
+    "--batch-size",
+    "8",
+    "--soak-seconds",
+    "5",
+    "--candidates",
+    "python",
+    "node",
+    "go",
+    "rust"
+  ],
+  "cwd": "/home/nazavod/workWORKWORKworkWORK/anchorpass",
+  "exit_code": 0,
+  "timed_out": false,
+  "log": "/tmp/anchorpass-fix-infrastructure/pressure-current-all.log"
+}

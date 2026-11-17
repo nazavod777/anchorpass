@@ -1,0 +1,22 @@
+{
+  "exit_code": 0,
+  "canonical_raw_sha256": "a860da14ad97068cddff8b75dc3d5afae38cf1995310fe724e9545910ef8e184",
+  "binding": "post-run from preserved original runner status",
+  "original_record": {
+    "command": [
+      "/home/nazavod/workWORKWORKworkWORK/anchorpass/.venv/bin/python",
+      "benchmarks/pressure/run.py",
+      "--output",
+      "/tmp/anchorpass-pressure-loader/node60",
+      "--rounds",
+      "1",
+      "--batches",
+      "4",
+      "--soak-seconds",
+      "60",
+      "--candidates",
+      "node"
+    ],
+    "exit_code": 0
+  }
+}

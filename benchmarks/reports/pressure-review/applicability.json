@@ -1,0 +1,22 @@
+{
+  "purpose": "Bounded local correctness review, not comparative transport ranking or production longevity.",
+  "expiry_semantics": "monotonic-floor-v1",
+  "main_runtime_sources_unchanged_since_measurement": true,
+  "non_runtime_source_changes_after_main_run": [
+    {
+      "path": "benchmarks/pressure/test_harness.py",
+      "measured_sha256": "068ec44d86f075d750c14475b88befeb1c6092994c70a7a09a846ce241aa5678",
+      "current_sha256": "2874e27d80846f44a86b312186f6f6a7be7b7933646416df1b7c41e0fe74c07a"
+    },
+    {
+      "path": "benchmarks/pressure/verify_expiry.py",
+      "measured_sha256": "08c219b1ba232fad301d00390703ccb6d2f8e9b2030f4c55b3c8cc7d872b6401",
+      "current_sha256": "0d32af09430b817b7ea4383882a7e6f35a85908a7c68d00026657b3633df7fa5"
+    }
+  ],
+  "non_runtime_change_reason": "The separately executed expiry helper now enforces exact sample counts and adapter success; its regression tests were extended. Neither file is imported by pressure/run.py.",
+  "focused_expiry_sources_match_current": true,
+  "main_runs": 4,
+  "main_operations": 3764,
+  "focused_operations": 84
+}

@@ -1,0 +1,98 @@
+{
+  "version": "0.1.1",
+  "family": "recaptcha-v3/1",
+  "signature_prefix": "anchorpass.bundle.v1\u0000",
+  "signature_message": "UTF8(anchorpass.bundle.v1) || 0x00 || ASCII(key_id) || 0x00 || exact payload bytes",
+  "payload_keys": [
+    "schema_version",
+    "protocol_family",
+    "revision",
+    "issued_at",
+    "expires_at",
+    "fields"
+  ],
+  "field_keys": [
+    "reason",
+    "hl",
+    "size",
+    "chr",
+    "vh",
+    "bg"
+  ],
+  "max_bundle_bytes": 65536,
+  "max_response_bytes": 1048576,
+  "timeout_seconds": 30,
+  "proxy_schemes": [
+    "http",
+    "https",
+    "socks5",
+    "socks5h"
+  ],
+  "limits": {
+    "max_in_flight": 16,
+    "max_queue": 0
+  },
+  "origin": "https://www.google.com",
+  "action": "explicit solve keyword, or sa from anchor URL; explicit wins, forwarded as sa to anchor and reload",
+  "anchor": "HTTPS www.google.com or google.com /recaptcha/{api2|enterprise}/anchor; reject duplicates/credentials/fragment; k and co required nonempty; unknown query preserved",
+  "test_origin": "private internal test injection only; localhost HTTP permitted for update fixtures",
+  "bundle_url": "explicit HTTPS source, no default remote channel; allow loopback HTTP for fixtures only",
+  "bundle_cache": "memory by default; opt-in atomic disk cache; per-family monotonic revision highwater under bounded lock; no silent disk-to-memory fallback",
+  "bundle_pin": "exact revision, never disable expiry/rollback",
+  "errors": [
+    "InvalidInput",
+    "InvalidProxy",
+    "UnsupportedProxy",
+    "ProxyConnectError",
+    "ProxyAuthError",
+    "TransportError",
+    "DeadlineExceeded",
+    "Cancelled",
+    "HttpStatusError",
+    "ProtocolError",
+    "ConfigUnavailable",
+    "ConfigInvalid",
+    "ConfigExpired",
+    "ConfigRollback",
+    "ResourceLimit",
+    "WorkerUnavailable",
+    "ClientClosed"
+  ],
+  "api": {
+    "python": [
+      "load_bg",
+      "aload_bg",
+      "extract_action",
+      "solve",
+      "asolve"
+    ],
+    "node": [
+      "loadBg",
+      "loadBgSync",
+      "extractAction",
+      "solve",
+      "solveSync"
+    ],
+    "go": [
+      "LoadBG",
+      "ExtractAction",
+      "Solve",
+      "WithBG",
+      "WithAction",
+      "WithUserAgent",
+      "WithHostname"
+    ],
+    "rust": [
+      "load_bg",
+      "extract_action",
+      "solve",
+      "solve_with_options",
+      "SolveOptions"
+    ]
+  },
+  "bg_override": "explicit nonempty UTF-8 string up to 16384 bytes; otherwise verified bundle bg; call-local and never persisted",
+  "action_override": "explicit nonempty UTF-8 string up to 256 bytes; otherwise URL sa; otherwise omitted; call-local and never persisted",
+  "candidate_status": "local release candidate; publication requires verified artifacts and explicit authorization",
+  "user_agent_override": "explicit nonempty printable ASCII up to 1024 bytes with at least one non-space character; all captcha HTTP steps only; default transport headers preserved; call-local",
+  "hostname_override": "explicit ASCII DNS/punycode or IP host replaces only hostname in decoded co; retain HTTP/HTTPS scheme and effective port; canonical Google Base64 forwarded to anchor and reload; default co preserved exactly; validate before all I/O"
+}

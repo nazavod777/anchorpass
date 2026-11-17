@@ -1,0 +1,276 @@
+{
+  "hostname": [
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZTo0NDM.",
+      "hostname": "Example.COM",
+      "valid": true,
+      "expected_co": "aHR0cHM6Ly9leGFtcGxlLmNvbTo0NDM.",
+      "expected_origin": "https://example.com:443"
+    },
+    {
+      "co": "aHR0cDovL29sZC5leGFtcGxlOjgwODA.",
+      "hostname": "new.example",
+      "valid": true,
+      "expected_co": "aHR0cDovL25ldy5leGFtcGxlOjgwODA.",
+      "expected_origin": "http://new.example:8080"
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZQ..",
+      "hostname": "new.example",
+      "valid": true,
+      "expected_co": "aHR0cHM6Ly9uZXcuZXhhbXBsZTo0NDM.",
+      "expected_origin": "https://new.example:443"
+    },
+    {
+      "co": "aHR0cDovL29sZC5leGFtcGxlLw..",
+      "hostname": "localhost",
+      "valid": true,
+      "expected_co": "aHR0cDovL2xvY2FsaG9zdDo4MA..",
+      "expected_origin": "http://localhost:80"
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZTo4NDQz",
+      "hostname": "127.0.0.1",
+      "valid": true,
+      "expected_co": "aHR0cHM6Ly8xMjcuMC4wLjE6ODQ0Mw..",
+      "expected_origin": "https://127.0.0.1:8443"
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZTo0NDM.",
+      "hostname": "[2001:0db8::1]",
+      "valid": true,
+      "expected_co": "aHR0cHM6Ly9bMjAwMTpkYjg6OjFdOjQ0Mw..",
+      "expected_origin": "https://[2001:db8::1]:443"
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZTo0NDM.",
+      "hostname": "2001:db8::1",
+      "valid": true,
+      "expected_co": "aHR0cHM6Ly9bMjAwMTpkYjg6OjFdOjQ0Mw..",
+      "expected_origin": "https://[2001:db8::1]:443"
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZTo0NDM.",
+      "hostname": "EXAMPLE.COM.",
+      "valid": true,
+      "expected_co": "aHR0cHM6Ly9leGFtcGxlLmNvbS46NDQz",
+      "expected_origin": "https://example.com.:443"
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZTo0NDM.",
+      "hostname": "xn--e1afmkfd.xn--p1ai",
+      "valid": true,
+      "expected_co": "aHR0cHM6Ly94bi0tZTFhZm1rZmQueG4tLXAxYWk6NDQz",
+      "expected_origin": "https://xn--e1afmkfd.xn--p1ai:443"
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZTo0NDM",
+      "hostname": "new.example",
+      "valid": true,
+      "expected_co": "aHR0cHM6Ly9uZXcuZXhhbXBsZTo0NDM.",
+      "expected_origin": "https://new.example:443"
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZTo0NDM.",
+      "hostname": "",
+      "valid": false
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZTo0NDM.",
+      "hostname": " ",
+      "valid": false
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZTo0NDM.",
+      "hostname": "https://new.example",
+      "valid": false
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZTo0NDM.",
+      "hostname": "new.example:443",
+      "valid": false
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZTo0NDM.",
+      "hostname": "new.example/path",
+      "valid": false
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZTo0NDM.",
+      "hostname": "a@new.example",
+      "valid": false
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZTo0NDM.",
+      "hostname": "bad_name.example",
+      "valid": false
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZTo0NDM.",
+      "hostname": "-bad.example",
+      "valid": false
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZTo0NDM.",
+      "hostname": "bad-.example",
+      "valid": false
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZTo0NDM.",
+      "hostname": "a..example",
+      "valid": false
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZTo0NDM.",
+      "hostname": "пример.рф",
+      "valid": false
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZTo0NDM.",
+      "hostname": "new.example\r\nX-Test: yes",
+      "valid": false
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZTo0NDM.",
+      "hostname": "[::1]:443",
+      "valid": false
+    },
+    {
+      "co": "dGVzdA..",
+      "hostname": "new.example",
+      "valid": false
+    },
+    {
+      "co": "aHR0cHM6Ly91c2VyOnBhc3N3b3JkQG9sZC5leGFtcGxlOjQ0Mw..",
+      "hostname": "new.example",
+      "valid": false
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZTow",
+      "hostname": "new.example",
+      "valid": false
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZTo2NTUzNg..",
+      "hostname": "new.example",
+      "valid": false
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZS9wYXRo",
+      "hostname": "new.example",
+      "valid": false
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZS8/YT1i",
+      "hostname": "new.example",
+      "valid": false
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZS8jeA..",
+      "hostname": "new.example",
+      "valid": false
+    },
+    {
+      "co": "ZnRwOi8vb2xkLmV4YW1wbGU6MjE.",
+      "hostname": "new.example",
+      "valid": false
+    },
+    {
+      "co": "aHR0cHM6Ly8vbWlzc2luZw..",
+      "hostname": "new.example",
+      "valid": false
+    },
+    {
+      "co": "%%%",
+      "hostname": "new.example",
+      "valid": false
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZTo0NDM.",
+      "hostname": "::ffff:192.0.2.1",
+      "valid": true,
+      "expected_co": "aHR0cHM6Ly9bOjpmZmZmOmMwMDA6MjAxXTo0NDM.",
+      "expected_origin": "https://[::ffff:c000:201]:443"
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZTo0NDM.",
+      "hostname": "[127.0.0.1]",
+      "valid": false
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZTo.",
+      "hostname": "new.example",
+      "valid": false
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZTo0NDM.....",
+      "hostname": "new.example",
+      "valid": false
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZTo0NDM..",
+      "hostname": "new.example",
+      "valid": false
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZTo0NDN.",
+      "hostname": "new.example",
+      "valid": false
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZTo0ND.M.",
+      "hostname": "new.example",
+      "valid": false
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZTo0NDM.=",
+      "hostname": "new.example",
+      "valid": false
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZQ.",
+      "hostname": "new.example",
+      "valid": false
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZQ=",
+      "hostname": "new.example",
+      "valid": false
+    },
+    {
+      "co": "aHR0cHM6Ly9vbGQuZXhhbXBsZQ.=",
+      "hostname": "new.example",
+      "valid": false
+    }
+  ],
+  "user_agent": [
+    {
+      "value": "Anchorpass-Test/1.0",
+      "valid": true
+    },
+    {
+      "value": "",
+      "valid": false
+    },
+    {
+      "value": "   ",
+      "valid": false
+    },
+    {
+      "value": "UA\r\nX-Test: yes",
+      "valid": false
+    },
+    {
+      "value": "UA\t",
+      "valid": false
+    },
+    {
+      "value": "UA",
+      "valid": false
+    },
+    {
+      "value": "Браузер",
+      "valid": false
+    }
+  ]
+}

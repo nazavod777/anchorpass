@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+build/
+dist/
+node_modules/
+target/
+.env
+*.log
+artifacts/
+*.tgz
+benchmarks/pressure/go/pressure-go
